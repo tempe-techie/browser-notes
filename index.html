@@ -314,15 +314,16 @@
 
     .editor__body {
       flex: 1;
-      overflow-y: auto;
+      min-height: 0;
       display: flex;
-      justify-content: center;
     }
 
     .editor__inner {
       width: 100%;
-      max-width: 760px;
-      padding: 40px 40px 120px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 40px 40px 40px;
     }
 
     .editor__title {
@@ -343,7 +344,8 @@
 
     .editor__content {
       width: 100%;
-      min-height: 50vh;
+      flex: 1;
+      min-height: 0;
       border: none;
       outline: none;
       background: transparent;
@@ -352,6 +354,7 @@
       line-height: 1.75;
       resize: none;
       font-family: inherit;
+      overflow-y: auto;
     }
 
     .editor__content::placeholder {
