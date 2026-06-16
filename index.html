@@ -361,6 +361,170 @@
       color: var(--text-faint);
     }
 
+    /* ---------------- Markdown toggle ---------------- */
+    .md-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 32px;
+      padding: 0 12px;
+      font-size: 12.5px;
+      font-weight: 550;
+      font-family: inherit;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease, transform 0.05s ease;
+    }
+
+    .md-toggle:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .md-toggle:active {
+      transform: scale(0.97);
+    }
+
+    .md-toggle.active {
+      background: var(--accent-soft);
+      border-color: transparent;
+      color: var(--accent);
+    }
+
+    .md-toggle svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* ---------------- Markdown preview ---------------- */
+    .editor__preview {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.75;
+      word-wrap: break-word;
+    }
+
+    .editor__preview > *:first-child {
+      margin-top: 0;
+    }
+
+    .editor__preview h1,
+    .editor__preview h2,
+    .editor__preview h3,
+    .editor__preview h4,
+    .editor__preview h5,
+    .editor__preview h6 {
+      font-weight: 680;
+      letter-spacing: -0.2px;
+      line-height: 1.3;
+      margin: 1.4em 0 0.5em;
+    }
+
+    .editor__preview h1 { font-size: 1.9em; }
+    .editor__preview h2 { font-size: 1.55em; }
+    .editor__preview h3 { font-size: 1.3em; }
+    .editor__preview h4 { font-size: 1.12em; }
+    .editor__preview h5 { font-size: 1em; }
+    .editor__preview h6 { font-size: 0.9em; color: var(--text-muted); }
+
+    .editor__preview p {
+      margin: 0 0 1em;
+    }
+
+    .editor__preview ul,
+    .editor__preview ol {
+      margin: 0 0 1em;
+      padding-left: 1.6em;
+    }
+
+    .editor__preview li {
+      margin-bottom: 0.3em;
+    }
+
+    .editor__preview a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .editor__preview a:hover {
+      text-decoration: underline;
+    }
+
+    .editor__preview strong {
+      font-weight: 680;
+    }
+
+    .editor__preview code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88em;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.12em 0.4em;
+    }
+
+    .editor__preview pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin: 0 0 1em;
+    }
+
+    .editor__preview pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.86em;
+      line-height: 1.6;
+    }
+
+    .editor__preview blockquote {
+      margin: 0 0 1em;
+      padding: 10px 18px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: var(--accent-soft);
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .editor__preview blockquote p {
+      margin: 0;
+    }
+
+    .editor__preview hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.6em 0;
+    }
+
+    .editor__preview del {
+      color: var(--text-muted);
+    }
+
+    .editor__preview img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin: 0.3em 0;
+      display: block;
+    }
+
+    .editor__preview .preview-empty {
+      color: var(--text-faint);
+      font-style: italic;
+    }
+
     /* ---------------- Empty state ---------------- */
     .empty-state {
       flex: 1;
@@ -682,6 +846,16 @@
     <main class="editor">
       <div class="editor__bar">
         <span class="editor__meta" id="editorMeta"></span>
+        <button class="md-toggle hidden" id="mdToggleBtn" title="Toggle Markdown preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+            <path d="M7 15V9l2.5 3L12 9v6"></path>
+            <path d="M17 9v6"></path>
+            <path d="M14.5 12.5 17 15l2.5-2.5"></path>
+          </svg>
+          <span id="mdToggleLabel">Markdown</span>
+        </button>
       </div>
 
       <div class="editor__body" id="editorBody">
@@ -699,6 +873,7 @@
             placeholder="Start writing…"
             spellcheck="true"
           ></textarea>
+          <div class="editor__preview hidden" id="markdownPreview"></div>
         </div>
       </div>
 
@@ -818,7 +993,10 @@
         empty: document.getElementById("emptyState"),
         title: document.getElementById("titleInput"),
         content: document.getElementById("contentInput"),
+        preview: document.getElementById("markdownPreview"),
         meta: document.getElementById("editorMeta"),
+        mdToggle: document.getElementById("mdToggleBtn"),
+        mdToggleLabel: document.getElementById("mdToggleLabel"),
         settingsBtn: document.getElementById("settingsBtn"),
         settingsView: document.getElementById("settingsView"),
         exportBtn: document.getElementById("exportBtn"),
@@ -837,6 +1015,8 @@
       let activeId = null;
       let searchTerm = "";
       let view = "editor"; // "editor" | "settings"
+      // Per-note Markdown preview state, keyed by note id (session-only).
+      const mdModes = Object.create(null);
 
       /* ---------------- Persistence ---------------- */
       function load() {
@@ -901,6 +1081,211 @@
         const div = document.createElement("div");
         div.textContent = str;
         return div.innerHTML;
+      }
+
+      /* ---------------- Markdown ---------------- */
+      // Inline spans. Input is already HTML-escaped, so Markdown syntax
+      // characters are intact while any real tags are inert.
+      function mdInline(text) {
+        // Stashed HTML fragments that later passes must not touch (code spans,
+        // links, images). Placeholders use NUL chars, which can't occur in the
+        // already-escaped source text.
+        const tokens = [];
+        function stash(html) {
+          tokens.push(html);
+          return "\u0000" + (tokens.length - 1) + "\u0000";
+        }
+
+        // Inline code first, so its contents aren't touched by other rules.
+        text = text.replace(/`([^`]+)`/g, function (_, code) {
+          return stash("<code>" + code + "</code>");
+        });
+
+        // Images: ![alt](url) — handled before links since the syntaxes overlap.
+        text = text.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (_, alt, url) {
+          return stash(
+            '<img src="' + url + '" alt="' + alt + '" loading="lazy" />'
+          );
+        });
+
+        // Explicit Markdown links: [text](url)
+        text = text.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, label, url) {
+          return stash(
+            '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
+              label +
+              "</a>"
+          );
+        });
+
+        text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+        text = text.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        text = text.replace(/_([^_]+)_/g, "<em>$1</em>");
+        text = text.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+
+        // Auto-link bare URLs that weren't already part of a Markdown link or
+        // image (those are stashed) or inside inline code (also stashed).
+        text = text.replace(
+          /(^|[\s(])((?:https?:\/\/|www\.)[^\s<\u0000]+)/g,
+          function (_, pre, url) {
+            // Don't swallow trailing punctuation that likely isn't part of it.
+            let trail = "";
+            const m = url.match(/[.,!?;:)\]]+$/);
+            if (m) {
+              trail = m[0];
+              url = url.slice(0, -trail.length);
+            }
+            const href = /^www\./i.test(url) ? "http://" + url : url;
+            return (
+              pre +
+              stash(
+                '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' +
+                  url +
+                  "</a>"
+              ) +
+              trail
+            );
+          }
+        );
+
+        // Restore stashed fragments.
+        text = text.replace(/\u0000(\d+)\u0000/g, function (_, i) {
+          return tokens[Number(i)];
+        });
+        return text;
+      }
+
+      function renderMarkdown(src) {
+        const lines = escapeHtml(src || "").split("\n");
+        const out = [];
+        let para = [];
+        let quote = [];
+        let listType = null; // "ul" | "ol"
+        let inCode = false;
+        let code = [];
+
+        function flushPara() {
+          if (para.length) {
+            out.push("<p>" + mdInline(para.join(" ")) + "</p>");
+            para = [];
+          }
+        }
+        function flushQuote() {
+          if (quote.length) {
+            const body = quote.map(function (l) { return mdInline(l); }).join("<br>");
+            out.push("<blockquote>" + body + "</blockquote>");
+            quote = [];
+          }
+        }
+        function closeList() {
+          if (listType) {
+            out.push("</" + listType + ">");
+            listType = null;
+          }
+        }
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+
+          // Fenced code blocks (```), opening/closing on their own line.
+          if (/^\s*```/.test(line)) {
+            if (inCode) {
+              out.push("<pre><code>" + code.join("\n") + "</code></pre>");
+              code = [];
+              inCode = false;
+            } else {
+              flushPara();
+              flushQuote();
+              closeList();
+              inCode = true;
+            }
+            continue;
+          }
+          if (inCode) {
+            code.push(line);
+            continue;
+          }
+
+          // Blank line ends the current block.
+          if (/^\s*$/.test(line)) {
+            flushPara();
+            flushQuote();
+            closeList();
+            continue;
+          }
+
+          // Blockquote. Note: the source is HTML-escaped, so ">" is "&gt;".
+          // Consecutive quoted lines are merged into one blockquote.
+          const bq = line.match(/^\s*&gt;\s?(.*)$/);
+          if (bq) {
+            flushPara();
+            closeList();
+            quote.push(bq[1]);
+            continue;
+          }
+
+          // Headings (# .. ######).
+          const heading = line.match(/^(#{1,6})\s+(.*)$/);
+          if (heading) {
+            flushPara();
+            flushQuote();
+            closeList();
+            const level = heading[1].length;
+            out.push("<h" + level + ">" + mdInline(heading[2].trim()) + "</h" + level + ">");
+            continue;
+          }
+
+          // Horizontal rule (---, ***, ___).
+          if (/^\s*([-*_])\s*(\1\s*){2,}$/.test(line)) {
+            flushPara();
+            flushQuote();
+            closeList();
+            out.push("<hr>");
+            continue;
+          }
+
+          // Unordered list item.
+          const ul = line.match(/^\s*[-*+]\s+(.*)$/);
+          if (ul) {
+            flushPara();
+            flushQuote();
+            if (listType !== "ul") {
+              closeList();
+              out.push("<ul>");
+              listType = "ul";
+            }
+            out.push("<li>" + mdInline(ul[1]) + "</li>");
+            continue;
+          }
+
+          // Ordered list item.
+          const ol = line.match(/^\s*\d+\.\s+(.*)$/);
+          if (ol) {
+            flushPara();
+            flushQuote();
+            if (listType !== "ol") {
+              closeList();
+              out.push("<ol>");
+              listType = "ol";
+            }
+            out.push("<li>" + mdInline(ol[1]) + "</li>");
+            continue;
+          }
+
+          // Otherwise it's paragraph text.
+          flushQuote();
+          closeList();
+          para.push(line.trim());
+        }
+
+        if (inCode) {
+          out.push("<pre><code>" + code.join("\n") + "</code></pre>");
+        }
+        flushPara();
+        flushQuote();
+        closeList();
+
+        return out.join("\n");
       }
 
       /* ---------------- Rendering ---------------- */
@@ -977,15 +1362,19 @@
         if (!note) {
           el.body.classList.add("hidden");
           el.empty.classList.remove("hidden");
+          el.mdToggle.classList.add("hidden");
           el.meta.textContent = "";
           return;
         }
         el.body.classList.remove("hidden");
         el.empty.classList.add("hidden");
+        el.mdToggle.classList.remove("hidden");
 
         // Avoid clobbering caret if values are already in sync.
         if (el.title.value !== note.title) el.title.value = note.title;
         if (el.content.value !== note.content) el.content.value = note.content;
+
+        renderContentMode(note);
 
         const words = (note.content || "").trim()
           ? note.content.trim().split(/\s+/).length
@@ -996,6 +1385,35 @@
           " · " +
           words +
           (words === 1 ? " word" : " words");
+      }
+
+      // Switch the editor body between the raw textarea and the rendered
+      // Markdown preview for the given note, and sync the toggle button.
+      function renderContentMode(note) {
+        const isMarkdown = !!mdModes[note.id];
+        if (isMarkdown) {
+          const rendered = renderMarkdown(note.content);
+          el.preview.innerHTML = rendered
+            ? rendered
+            : '<p class="preview-empty">Nothing to preview yet.</p>';
+          el.preview.classList.remove("hidden");
+          el.content.classList.add("hidden");
+          el.mdToggle.classList.add("active");
+          el.mdToggleLabel.textContent = "Raw Text";
+        } else {
+          el.preview.classList.add("hidden");
+          el.content.classList.remove("hidden");
+          el.mdToggle.classList.remove("active");
+          el.mdToggleLabel.textContent = "Markdown";
+        }
+      }
+
+      function toggleMarkdown() {
+        const note = getNote(activeId);
+        if (!note) return;
+        mdModes[note.id] = !mdModes[note.id];
+        renderContentMode(note);
+        if (!mdModes[note.id]) el.content.focus();
       }
 
       function render() {
@@ -1027,10 +1445,13 @@
         activeId = id;
         view = "editor";
         render();
-        // Editor is already in edit mode — focus content for immediate typing.
-        el.content.focus();
-        const len = el.content.value.length;
-        el.content.setSelectionRange(len, len);
+        // Editor is already in edit mode — focus content for immediate typing,
+        // unless this note is currently showing the Markdown preview.
+        if (!mdModes[id]) {
+          el.content.focus();
+          const len = el.content.value.length;
+          el.content.setSelectionRange(len, len);
+        }
       }
 
       function deleteNote(id) {
@@ -1229,6 +1650,7 @@
 
       el.title.addEventListener("input", updateActiveNote);
       el.content.addEventListener("input", updateActiveNote);
+      el.mdToggle.addEventListener("click", toggleMarkdown);
 
       // Pressing Enter in the title jumps to the content area.
       el.title.addEventListener("keydown", function (e) {
