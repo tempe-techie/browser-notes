@@ -192,7 +192,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-right: 22px;
+      padding-right: 46px;
     }
 
     .note-item__preview {
@@ -210,10 +210,47 @@
       color: var(--text-faint);
     }
 
-    .note-item__delete {
+    .note-item__pin {
       position: absolute;
       top: 10px;
       right: 9px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-faint);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease;
+    }
+
+    .note-item:hover .note-item__pin {
+      opacity: 1;
+    }
+
+    .note-item__pin:hover {
+      color: #f5c542;
+      background: rgba(245, 197, 66, 0.14);
+    }
+
+    .note-item__pin.active {
+      opacity: 1;
+      color: #f5c542;
+    }
+
+    .note-item__pin svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .note-item__delete {
+      position: absolute;
+      top: 10px;
+      right: 33px;
       width: 24px;
       height: 24px;
       display: flex;
@@ -1053,7 +1090,12 @@
       }
 
       function sortedNotes() {
-        return [...notes].sort((a, b) => b.updatedAt - a.updatedAt);
+        return [...notes].sort((a, b) => {
+          const pa = a.pinned ? 1 : 0;
+          const pb = b.pinned ? 1 : 0;
+          if (pa !== pb) return pb - pa;
+          return b.updatedAt - a.updatedAt;
+        });
       }
 
       function deriveTitle(note) {
@@ -1349,13 +1391,29 @@
 
         for (const note of items) {
           const item = document.createElement("div");
-          item.className = "note-item" + (note.id === activeId ? " active" : "");
+          item.className =
+            "note-item" +
+            (note.id === activeId ? " active" : "") +
+            (note.pinned ? " pinned" : "");
           item.dataset.id = note.id;
 
           const preview =
             (note.content || "").replace(/\n/g, " ").trim() || "No additional text";
 
           item.innerHTML =
+            '<button class="note-item__pin' +
+            (note.pinned ? " active" : "") +
+            '" title="' +
+            (note.pinned ? "Unpin note" : "Pin note to top") +
+            '" data-pin="' +
+            note.id +
+            '">' +
+            '<svg viewBox="0 0 24 24" fill="' +
+            (note.pinned ? "currentColor" : "none") +
+            '" stroke="currentColor" ' +
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>' +
+            "</svg></button>" +
             '<div class="note-item__title">' +
             escapeHtml(deriveTitle(note)) +
             "</div>" +
@@ -1461,6 +1519,7 @@
           id: uid(),
           title: "",
           content: "",
+          pinned: false,
           createdAt: now,
           updatedAt: now,
         };
@@ -1485,6 +1544,14 @@
           const len = el.content.value.length;
           el.content.setSelectionRange(len, len);
         }
+      }
+
+      function togglePin(id) {
+        const note = getNote(id);
+        if (!note) return;
+        note.pinned = !note.pinned;
+        save();
+        renderList();
       }
 
       function deleteNote(id) {
@@ -1582,6 +1649,7 @@
             id: id,
             title: title,
             content: content,
+            pinned: Boolean(item.pinned),
             createdAt: Number(item.createdAt) || now,
             updatedAt: Number(item.updatedAt) || now,
           });
@@ -1671,6 +1739,12 @@
       });
 
       el.list.addEventListener("click", function (e) {
+        const pinBtn = e.target.closest("[data-pin]");
+        if (pinBtn) {
+          e.stopPropagation();
+          togglePin(pinBtn.getAttribute("data-pin"));
+          return;
+        }
         const delBtn = e.target.closest("[data-delete]");
         if (delBtn) {
           e.stopPropagation();
